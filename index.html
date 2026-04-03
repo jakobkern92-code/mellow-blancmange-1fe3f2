@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioFarma Lab — Jogo Educativo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal-50: #E1F5EE; --teal-100: #9FE1CB; --teal-400: #1D9E75; --teal-600: #0F6E56; --teal-800: #085041;
+  --purple-50: #EEEDFE; --purple-100: #CECBF6; --purple-400: #7F77DD; --purple-600: #534AB7; --purple-800: #3C3489;
+  --amber-50: #FAEEDA; --amber-400: #BA7517; --amber-800: #854F0B;
+  --coral-50: #FAECE7; --coral-400: #D85A30; --coral-800: #993C1D;
+  --gray-50: #F7F6F3; --gray-100: #EEECE8; --gray-200: #D3D1C7; --gray-400: #888780; --gray-600: #5F5E5A; --gray-800: #2C2C2A;
+  --red-50: #FCEBEB; --red-400: #E24B4A; --red-800: #A32D2D;
+  --bg: #FAFAF8;
+  --surface: #FFFFFF;
+  --border: rgba(0,0,0,0.08);
+  --border-med: rgba(0,0,0,0.14);
+  --text-primary: #1A1A18;
+  --text-secondary: #5F5E5A;
+  --text-muted: #888780;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'DM Serif Display', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* LAYOUT */
+.app { max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* NAV BAR */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,250,248,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--border);
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-logo { font-family: var(--font-display); font-size: 18px; color: var(--teal-600); }
+.topbar-nav { display: flex; gap: 8px; }
+.topbar-btn { background: none; border: 0.5px solid var(--border-med); border-radius: var(--radius-sm); padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); transition: all .15s; }
+.topbar-btn:hover { background: var(--gray-100); color: var(--text-primary); }
+.topbar-btn.active-tab { background: var(--teal-50); border-color: var(--teal-100); color: var(--teal-800); }
+
+/* READING BAR */
+.reading-bar { height: 3px; background: var(--gray-100); }
+.reading-fill { height: 100%; background: var(--teal-400); transition: width .4s; }
+
+/* TYPOGRAPHY */
+h1 { font-family: var(--font-display); font-size: 32px; line-height: 1.25; color: var(--text-primary); margin-bottom: 12px; }
+h2 { font-family: var(--font-display); font-size: 22px; color: var(--text-primary); margin-bottom: 10px; }
+h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+p { color: var(--text-secondary); margin-bottom: 10px; }
+p:last-child { margin-bottom: 0; }
+em { font-style: italic; color: var(--text-primary); }
+
+/* BADGES */
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; letter-spacing: .02em; }
+.badge-teal { background: var(--teal-50); color: var(--teal-800); }
+.badge-purple { background: var(--purple-50); color: var(--purple-800); }
+.badge-amber { background: var(--amber-50); color: var(--amber-800); }
+.badge-coral { background: var(--coral-50); color: var(--coral-800); }
+
+/* CARDS */
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.card-teal { border-color: var(--teal-100); }
+.card-purple { border-color: var(--purple-100); }
+
+/* HIGHLIGHT BOXES */
+.highlight { border-radius: var(--radius-sm); padding: 12px 16px; margin: 12px 0; }
+.hl-teal { background: var(--teal-50); }
+.hl-teal p { color: var(--teal-800); font-size: 13px; margin: 0; }
+.hl-purple { background: var(--purple-50); }
+.hl-purple p { color: var(--purple-800); font-size: 13px; margin: 0; }
+.hl-amber { background: var(--amber-50); }
+.hl-amber p { color: var(--amber-800); font-size: 13px; margin: 0; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0.5px solid var(--border-med); border-radius: var(--radius-sm); padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--text-primary); cursor: pointer; font-family: var(--font-body); transition: all .15s; text-decoration: none; }
+.btn:hover { background: var(--gray-100); }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--teal-400); border-color: var(--teal-400); color: #fff; }
+.btn-primary:hover { background: var(--teal-600); border-color: var(--teal-600); }
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1rem; }
+
+/* SECTION LABEL */
+.section-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin: 2rem 0 .75rem; }
+
+/* CHECKLIST */
+.check-list { display: flex; flex-direction: column; gap: 8px; }
+.check-item { display: flex; gap: 10px; align-items: flex-start; }
+.check-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--teal-50); border: 1px solid var(--teal-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.check-dot svg { width: 10px; height: 10px; }
+.check-text { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+.mini-card { background: var(--gray-50); border-radius: var(--radius-sm); padding: 14px; }
+.mini-card-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+.mini-card-body { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+/* VOCAB GRID */
+.vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin: 1rem 0; }
+.vocab-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; transition: background .15s; }
+.vocab-card:hover { background: var(--gray-50); }
+.vocab-term { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.vocab-def { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+
+/* APP CARDS */
+.app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 1rem 0; }
+.app-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 14px 12px; text-align: center; }
+.app-card-icon { font-size: 22px; margin-bottom: 6px; }
+.app-card-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.app-card-body { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+/* TIMELINE */
+.timeline { display: flex; flex-direction: column; gap: 0; margin: 1rem 0; }
+.tl-item { display: flex; gap: 14px; padding-bottom: 18px; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-left { display: flex; flex-direction: column; align-items: center; min-width: 26px; }
+.tl-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.tl-dot-t { background: var(--teal-50); color: var(--teal-800); border: 1px solid var(--teal-100); }
+.tl-dot-p { background: var(--purple-50); color: var(--purple-800); border: 1px solid var(--purple-100); }
+.tl-dot-a { background: var(--amber-50); color: var(--amber-800); border: 1px solid #FAC775; }
+.tl-line { width: 1px; background: var(--border); flex: 1; margin-top: 4px; }
+.tl-content { padding-top: 3px; }
+.tl-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.tl-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.tl-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+
+/* COMPARE */
+.compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+.compare-cell { padding: 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); }
+.compare-cell-accent { border-color: var(--teal-100); background: rgba(225,245,238,.3); }
+.compare-head { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+.compare-head-teal { color: var(--teal-600); }
+.compare-item { font-size: 12px; color: var(--text-primary); padding: 5px 0; border-bottom: 0.5px solid var(--border); line-height: 1.5; }
+.compare-item:last-child { border-bottom: none; }
+
+/* PAGE NAV */
+.page-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 0.5px solid var(--border); }
+.page-dots { display: flex; gap: 5px; align-items: center; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gray-200); transition: all .3s; }
+.dot.active { width: 18px; border-radius: 3px; background: var(--teal-400); }
+
+/* PROGRESS BAR */
+.prog-bar { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--teal-400); border-radius: 4px; transition: width .4s; }
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+.stat-box { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.stat-val { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+.stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* MISSION LIST */
+.mission-list { display: flex; flex-direction: column; gap: 8px; }
+.mission-card { padding: 14px 16px; border-radius: var(--radius-md); border: 0.5px solid var(--border); cursor: pointer; transition: all .15s; background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mission-card:hover { background: var(--gray-50); transform: translateX(2px); }
+.mission-card.done { opacity: .55; cursor: default; }
+.mission-card.done:hover { transform: none; background: var(--surface); }
+.mission-card.locked { opacity: .35; cursor: not-allowed; }
+.mission-card.locked:hover { transform: none; background: var(--surface); }
+.mission-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.mission-desc { font-size: 12px; color: var(--text-secondary); }
+.mission-arrow { color: var(--text-muted); font-size: 16px; flex-shrink: 0; }
+
+/* MOL GRID */
+.mol-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 1rem 0; }
+.mol-btn { padding: 18px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: 13px; color: var(--text-secondary); background: var(--surface); transition: all .2s; text-align: center; font-family: var(--font-body); line-height: 1.5; }
+.mol-btn:hover { background: var(--gray-50); transform: translateY(-2px); }
+.mol-btn .mol-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+.mol-btn .mol-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.mol-btn .mol-desc { font-size: 11px; }
+.mol-btn.selected { border-color: var(--teal-400); background: var(--teal-50); }
+.mol-btn.wrong { border-color: var(--red-400); background: var(--red-50); }
+
+/* SEQ GAME */
+.seq-slots { display: flex; gap: 8px; margin: 1rem 0; flex-wrap: wrap; }
+.seq-slot { min-width: 70px; min-height: 56px; border: 1.5px dashed var(--border-med); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted); cursor: pointer; background: var(--gray-50); padding: 6px; text-align: center; transition: all .15s; flex: 1; }
+.seq-slot:hover { border-color: var(--teal-400); }
+.seq-slot.filled { border-style: solid; border-color: var(--teal-400); background: var(--teal-50); color: var(--teal-800); font-size: 12px; font-weight: 500; }
+.seq-pieces { display: flex; gap: 8px; flex-wrap: wrap; margin: 1rem 0; }
+.seq-piece { padding: 8px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text-primary); transition: all .15s; font-family: var(--font-body); }
+.seq-piece:hover { background: var(--gray-50); transform: translateY(-1px); }
+.seq-piece.used { opacity: .28; cursor: default; transform: none; }
+
+/* QUIZ */
+.quiz-opts { display: flex; flex-direction: column; gap: 8px; margin: 1rem 0; }
+.quiz-opt { padding: 12px 16px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; color: var(--text-primary); background: var(--surface); transition: all .15s; text-align: left; font-family: var(--font-body); }
+.quiz-opt:hover { background: var(--gray-50); border-color: var(--border-med); }
+.quiz-opt.correct { background: var(--teal-50); border-color: var(--teal-400); color: var(--teal-800); }
+.quiz-opt.wrong { background: var(--red-50); border-color: var(--red-400); color: var(--red-800); }
+
+/* PHASE STEPS */
+.phase-steps { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.phase-step { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 99px; background: var(--gray-100); color: var(--text-muted); }
+.phase-step.active { background: var(--teal-50); color: var(--teal-800); }
+.phase-step.done { background: var(--teal-100); color: var(--teal-800); }
+
+/* HERO */
+.hero { text-align: center; padding: 3rem 1rem 2rem; }
+.hero-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+.hero p { font-size: 16px; max-width: 500px; margin: 0 auto 16px; }
+.hero-badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+
+/* GAME HERO */
+.game-hero { text-align: center; padding: 2rem 1rem 1.5rem; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; }
+.game-hero h1 { font-size: 26px; }
+
+/* RESULT */
+.result-wrap { text-align: center; padding: 2rem 1rem; }
+.result-icon { font-size: 56px; display: block; margin-bottom: 16px; }
+
+@media (max-width: 500px) {
+  h1 { font-size: 24px; }
+  .two-col, .compare-row { grid-template-columns: 1fr; }
+  .mol-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">🔬 BioFarma Lab</div>
+  <div class="topbar-nav">
+    <button class="topbar-btn active-tab" id="tab-intro" onclick="switchTab('intro')">Guia do Estudante</button>
+    <button class="topbar-btn" id="tab-game" onclick="switchTab('game')">Jogar</button>
+  </div>
+</div>
+
+<!-- READING BAR (intro only) -->
+<div class="reading-bar" id="reading-bar"><div class="reading-fill" id="rbar" style="width:16%"></div></div>
+
+<div class="app">
+
+<!-- ═══════════════════════════════════════════════
+     INTRO SECTION
+═══════════════════════════════════════════════ -->
+<div id="intro-section" class="screen active">
+
+  <!-- PAGE 0: Boas-vindas -->
+  <div id="pg-0" class="screen active">
+    <div class="hero">
+      <span class="hero-icon">🧬</span>
+      <h1>Guia do Estudante</h1>
+      <p>Antes de começar o jogo, leia este guia. Ele vai te dar todo o contexto para entender o que é biotecnologia e como os biofármacos são criados.</p>
+      <div class="hero-badges">
+        <span class="badge badge-teal">Biotecnologia</span>
+        <span class="badge badge-purple">Biofármacos</span>
+        <span class="badge badge-amber">Ensino Fundamental</span>
+      </div>
+    </div>
+    <div class="section-label">Neste guia você vai aprender</div>
+    <div class="check-list">
+      <div class="check-item"><div class="check-dot"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-text">O que é biotecnologia e para que serve</div></div>
+      <div class="check-item"><div class="check-dot"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-text">A diferença entre biofármacos e medicamentos comuns</div></div>
+      <div class="check-item"><div class="check-dot"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-text">Como a engenharia genética cria remédios</div></div>
+      <div class="check-item"><div class="check-dot"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-text">O caminho de um medicamento até chegar à farmácia</div></div>
+      <div class="check-item"><div class="check-dot"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-text">Exemplos reais: insulina, vacinas de mRNA e anticorpos</div></div>
+      <div class="check-item"><div class="check-dot"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="check-text">O papel da ANVISA e da ciência brasileira</div></div>
+    </div>
+  </div>
+
+  <!-- PAGE 1: O que é biotecnologia -->
+  <div id="pg-1" class="screen">
+    <div class="section-label">Capítulo 1 — O que é biotecnologia?</div>
+    <div class="card">
+      <h2>Usar a vida para melhorar a vida</h2>
+      <p>Biotecnologia é a ciência que usa organismos vivos — ou partes deles, como genes e proteínas — para criar produtos úteis para a humanidade. O nome vem do grego: <em>bios</em> (vida) + <em>techne</em> (arte, técnica).</p>
+      <p>Quando um padeiro usa fermento para fazer pão, está fazendo biotecnologia há milênios. Quando um cientista reprograma uma bactéria para produzir insulina humana, está fazendo biotecnologia moderna.</p>
+      <div class="highlight hl-teal"><p>A biotecnologia moderna começou nos anos 1970, quando cientistas aprenderam a cortar e colar pedaços de DNA entre diferentes organismos — a chamada tecnologia do DNA recombinante.</p></div>
+    </div>
+    <div class="two-col">
+      <div class="mini-card">
+        <div class="mini-card-title">🍞 Biotecnologia antiga</div>
+        <div class="mini-card-body">Pão e cerveja com fermento, queijo com bactérias, vinho com leveduras. Humanos usam microrganismos há mais de 10.000 anos sem saber.</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-title">🧬 Biotecnologia moderna</div>
+        <div class="mini-card-body">Editar o DNA de bactérias para produzir insulina, criar vacinas de mRNA, desenvolver terapias contra o câncer, produzir combustíveis sustentáveis.</div>
+      </div>
+    </div>
+    <div class="section-label">Onde a biotecnologia está presente</div>
+    <div class="app-grid">
+      <div class="app-card"><div class="app-card-icon">💊</div><div class="app-card-title">Medicina</div><div class="app-card-body">Vacinas, insulina, anticorpos contra câncer, terapia gênica</div></div>
+      <div class="app-card"><div class="app-card-icon">🌾</div><div class="app-card-title">Agricultura</div><div class="app-card-body">Plantas resistentes a pragas, sementes mais nutritivas</div></div>
+      <div class="app-card"><div class="app-card-icon">🌊</div><div class="app-card-title">Meio ambiente</div><div class="app-card-body">Bactérias que "comem" óleo derramado no mar</div></div>
+      <div class="app-card"><div class="app-card-icon">🏭</div><div class="app-card-title">Indústria</div><div class="app-card-body">Plásticos biodegradáveis por microrganismos</div></div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Biofármacos vs Químicos -->
+  <div id="pg-2" class="screen">
+    <div class="section-label">Capítulo 2 — Biofármacos vs. medicamentos comuns</div>
+    <div class="card">
+      <h2>Nem todo remédio é igual</h2>
+      <p>A maioria dos medicamentos que você conhece — como paracetamol, ibuprofeno ou antibióticos — são moléculas pequenas fabricadas por reações químicas. Já os biofármacos são proteínas grandes e complexas, produzidas por células vivas.</p>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">
+        <div class="compare-head">Medicamento químico</div>
+        <div class="compare-item">Molécula pequena e simples</div>
+        <div class="compare-item">Produzida em reator químico</div>
+        <div class="compare-item">Geralmente tomado como comprimido</div>
+        <div class="compare-item">Ex: aspirina, paracetamol</div>
+        <div class="compare-item">Descoberto por acidente ou triagem</div>
+      </div>
+      <div class="compare-cell compare-cell-accent">
+        <div class="compare-head compare-head-teal">Biofármaco ✦</div>
+        <div class="compare-item">Proteína grande e complexa</div>
+        <div class="compare-item">Produzida por célula viva</div>
+        <div class="compare-item">Geralmente aplicado por injeção</div>
+        <div class="compare-item">Ex: insulina, vacinas, anticorpos</div>
+        <div class="compare-item">Desenvolvido por engenharia genética</div>
+      </div>
+    </div>
+    <div class="highlight hl-purple"><p>Por que injeção? Porque biofármacos são proteínas — se você tomasse em comprimido, seu estômago as digeriria antes de fazerem efeito, assim como digere a proteína de um bife!</p></div>
+    <div class="card card-teal" style="margin-top:1rem">
+      <h3>Exemplos reais de biofármacos</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span style="font-size:20px;flex-shrink:0">💉</span>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:3px">Insulina recombinante</div><div style="font-size:12px;color:var(--text-secondary)">Usada por diabéticos. Produzida por bactérias com o gene humano da insulina desde 1982.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span style="font-size:20px;flex-shrink:0">💉</span>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:3px">Vacinas de mRNA (COVID-19)</div><div style="font-size:12px;color:var(--text-secondary)">Ensinam o corpo a reconhecer o vírus sem usar o vírus real. Tecnologia que levou décadas para chegar ao público.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span style="font-size:20px;flex-shrink:0">💉</span>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:3px">Anticorpos monoclonais</div><div style="font-size:12px;color:var(--text-secondary)">Proteínas que atacam células cancerígenas com precisão. Usados em câncer de mama, leucemia e outras doenças.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Engenharia genética -->
+  <div id="pg-3" class="screen">
+    <div class="section-label">Capítulo 3 — Como a engenharia genética cria remédios</div>
+    <div class="card">
+      <h2>O DNA como receita de fabricação</h2>
+      <p>Todo ser vivo usa DNA como manual de instruções. Cada gene é uma "receita" que diz à célula como fabricar uma proteína específica. A engenharia genética aprendeu a copiar essas receitas e inserir em outros organismos.</p>
+      <p>Imagine que você quer fazer um bolo e descobre que a receita perfeita está no caderno de outra pessoa. Você faz uma cópia da receita e coloca no seu próprio caderno. É exatamente isso que fazemos com genes!</p>
+    </div>
+    <div class="section-label">Passo a passo: como a insulina é produzida</div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-p">1</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Identificar o gene</div><div class="tl-body">Cientistas localizam no DNA humano o gene responsável por produzir insulina — a proteína que regula o açúcar no sangue.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-p">2</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Copiar com PCR</div><div class="tl-body">A técnica PCR (reação em cadeia da polimerase) faz milhões de cópias do gene em poucas horas. É como uma fotocopiadora de DNA.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-t">3</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Inserir em bactéria</div><div class="tl-body">O gene humano é inserido no DNA de uma bactéria (<em>E. coli</em>). A bactéria passa a ler essa instrução e produzir insulina humana!</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-t">4</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Fermentação em biorreator</div><div class="tl-body">As bactérias se multiplicam em grandes tanques chamados biorreatores. Cada bactéria é uma "fábrica" de insulina trabalhando 24h por dia.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-a">5</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Purificação e controle</div><div class="tl-body">A insulina é extraída, purificada e testada para garantir qualidade. Só depois é embalada e enviada às farmácias.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-a">6</div></div><div class="tl-content"><div class="tl-title">Aprovação regulatória</div><div class="tl-body">A ANVISA analisa todos os dados e aprova o medicamento se for seguro e eficaz para uso no Brasil.</div></div></div>
+    </div>
+    <div class="highlight hl-amber"><p>Antes de 1982, diabéticos usavam insulina extraída do pâncreas de porcos e bovinos. A engenharia genética tornou possível produzir insulina humana idêntica, em quantidade ilimitada e sem depender de animais.</p></div>
+  </div>
+
+  <!-- PAGE 4: Caminho ao paciente -->
+  <div id="pg-4" class="screen">
+    <div class="section-label">Capítulo 4 — O caminho até a farmácia</div>
+    <div class="card">
+      <h2>Da descoberta ao paciente: 10 a 15 anos</h2>
+      <p>Criar um biofármaco não acontece da noite para o dia. É um processo longo, rigoroso e muito caro — mas necessário para proteger quem vai usar o medicamento.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-p">D</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Descoberta <span class="tl-tag badge-teal">2–4 anos</span></div><div class="tl-body">Pesquisadores identificam a doença-alvo e buscam moléculas candidatas. De milhares de candidatas, poucas chegam à próxima fase.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-p">Pré</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Testes pré-clínicos <span class="tl-tag badge-purple">1–2 anos</span></div><div class="tl-body">Testes em células e em animais. O objetivo é saber se o medicamento é tóxico e se funciona. Obrigatórios antes de qualquer teste em humanos.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-t">I</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Fase I — Segurança <span class="tl-tag badge-teal">1 ano</span></div><div class="tl-body">Primeiros testes em humanos (20–80 pessoas). Foco: o remédio é seguro? Qual dose é adequada?</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-t">II</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Fase II — Eficácia <span class="tl-tag badge-teal">2 anos</span></div><div class="tl-body">Testes em pacientes com a doença (100–300 pessoas). Foco: o remédio funciona? Quais os efeitos colaterais?</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-t">III</div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Fase III — Confirmação <span class="tl-tag badge-teal">3–4 anos</span></div><div class="tl-body">Grande estudo com milhares de pacientes em vários países. Compara o novo remédio com o tratamento existente.</div></div></div>
+      <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-a">✓</div></div><div class="tl-content"><div class="tl-title">Aprovação ANVISA <span class="tl-tag badge-amber">1–2 anos</span></div><div class="tl-body">A agência analisa todos os dados. Se aprovado, o medicamento pode ser fabricado e vendido no Brasil.</div></div></div>
+    </div>
+  </div>
+
+  <!-- PAGE 5: Glossário -->
+  <div id="pg-5" class="screen">
+    <div class="section-label">Capítulo 5 — Glossário essencial</div>
+    <div class="card">
+      <h2>Palavras que você vai encontrar no jogo</h2>
+      <p>Familiarize-se com estes termos antes de jogar. Você pode usar este glossário como referência durante as missões.</p>
+    </div>
+    <div class="vocab-grid">
+      <div class="vocab-card"><div class="vocab-term">DNA</div><div class="vocab-def">Molécula que carrega as instruções genéticas de todo ser vivo. Forma a famosa dupla hélice.</div></div>
+      <div class="vocab-card"><div class="vocab-term">Gene</div><div class="vocab-def">Trecho do DNA que contém a instrução para fabricar uma proteína específica.</div></div>
+      <div class="vocab-card"><div class="vocab-term">Proteína</div><div class="vocab-def">Molécula que executa funções no organismo: pode ser um hormônio, anticorpo ou enzima.</div></div>
+      <div class="vocab-card"><div class="vocab-term">PCR</div><div class="vocab-def">Técnica para fazer milhões de cópias de um gene rapidamente. Usada em testes de COVID-19 também.</div></div>
+      <div class="vocab-card"><div class="vocab-term">Biorreator</div><div class="vocab-def">Tanque controlado onde células vivas crescem e produzem o biofármaco em grande escala.</div></div>
+      <div class="vocab-card"><div class="vocab-term">Anticorpo</div><div class="vocab-def">Proteína do sistema imune que reconhece e neutraliza vírus, bactérias ou células doentes.</div></div>
+      <div class="vocab-card"><div class="vocab-term">ANVISA</div><div class="vocab-def">Agência Nacional de Vigilância Sanitária. Aprova e fiscaliza medicamentos no Brasil desde 1999.</div></div>
+      <div class="vocab-card"><div class="vocab-term">mRNA</div><div class="vocab-def">Mensageiro do DNA. Carrega a instrução do gene até a "fábrica" da célula que produz proteínas.</div></div>
+      <div class="vocab-card"><div class="vocab-term">Biossimilar</div><div class="vocab-def">Versão "genérica" de um biofármaco, mais barata. Precisa provar que é equivalente ao original.</div></div>
+    </div>
+    <div class="highlight hl-teal" style="margin-top:1.5rem"><p>Você está pronto para o jogo! Clique em "Jogar" no menu acima para começar o BioFarma Lab.</p></div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn btn-primary" onclick="switchTab('game')">Ir para o BioFarma Lab →</button>
+    </div>
+  </div>
+
+  <!-- PAGE NAV (intro) -->
+  <div class="page-nav" id="intro-nav">
+    <button class="btn btn-sm" id="btn-prev" onclick="changePage(-1)" style="visibility:hidden">← Anterior</button>
+    <div class="page-dots" id="page-dots"></div>
+    <button class="btn btn-sm btn-primary" id="btn-next" onclick="changePage(1)">Próximo →</button>
+  </div>
+
+</div><!-- end intro-section -->
+
+
+<!-- ═══════════════════════════════════════════════
+     GAME SECTION
+═══════════════════════════════════════════════ -->
+<div id="game-section" class="screen">
+
+  <!-- HUB -->
+  <div id="s-hub" class="screen active">
+    <div class="game-hero">
+      <span style="font-size:36px;display:block;margin-bottom:10px">🔬</span>
+      <h1>BioFarma Lab</h1>
+      <p style="color:var(--text-secondary)">Você é um jovem cientista. Sua missão: criar um biofármaco para salvar vidas!</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val" id="st-pts">0</div><div class="stat-label">Pontos</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-miss">0/4</div><div class="stat-label">Missões</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-rank">Estagiário</div><div class="stat-label">Nível</div></div>
+    </div>
+    <div class="prog-bar" style="margin-bottom:1.5rem"><div class="prog-fill" id="hub-bar" style="width:0%"></div></div>
+    <div class="mission-list" id="mission-list"></div>
+    <div style="margin-top:1.25rem;text-align:center">
+      <button class="btn btn-sm" onclick="switchTab('intro')" style="font-size:12px">← Voltar ao Guia</button>
+    </div>
+  </div>
+
+  <!-- MISSÃO 1 -->
+  <div id="s-m1" class="screen">
+    <button class="btn btn-sm" style="margin-bottom:1rem" onclick="gameGoTo('s-hub')">← Missões</button>
+    <h2>Missão 1 — Descoberta da molécula</h2>
+    <div class="phase-steps"><div class="phase-step active">1. Escolha</div><div class="phase-step">2. Resultado</div></div>
+    <p>Pesquisadores precisam encontrar uma molécula capaz de combater a doença. Você tem 3 candidatas. Escolha a que tem as características corretas para um biofármaco!</p>
+    <div class="highlight hl-teal"><p>💡 Fato: Biofármacos são medicamentos feitos a partir de seres vivos — bactérias, leveduras ou células animais. Eles costumam ser proteínas grandes e complexas.</p></div>
+    <div class="mol-grid" id="mol-grid">
+      <div class="mol-btn" onclick="selectMol(0)"><span class="mol-icon">🔵</span><div class="mol-name">Molécula A</div><div class="mol-desc">Proteína grande, produzida por bactérias</div></div>
+      <div class="mol-btn" onclick="selectMol(1)"><span class="mol-icon">🟡</span><div class="mol-name">Molécula B</div><div class="mol-desc">Pequena, síntese química simples</div></div>
+      <div class="mol-btn" onclick="selectMol(2)"><span class="mol-icon">🔴</span><div class="mol-name">Molécula C</div><div class="mol-desc">Composto mineral, instável em calor</div></div>
+    </div>
+    <div id="mol-feedback"></div>
+  </div>
+
+  <!-- MISSÃO 2 -->
+  <div id="s-m2" class="screen">
+    <button class="btn btn-sm" style="margin-bottom:1rem" onclick="gameGoTo('s-hub')">← Missões</button>
+    <h2>Missão 2 — Engenharia genética</h2>
+    <div class="phase-steps"><div class="phase-step active">1. Ordenar</div><div class="phase-step">2. Resultado</div></div>
+    <p>Para produzir o biofármaco em grande escala, precisamos inserir o gene correto numa bactéria. Monte a sequência de etapas na ordem certa!</p>
+    <div class="highlight hl-purple"><p>💡 Fato: A insulina foi o primeiro biofármaco produzido por engenharia genética, em 1982. Antes disso, era extraída de pâncreas de porcos e bovinos.</p></div>
+    <p style="font-size:13px;color:var(--text-muted)">Clique nos passos abaixo para preencher os slots em ordem:</p>
+    <div class="seq-slots" id="seq-slots">
+      <div class="seq-slot" id="slot-0" onclick="clearSlot(0)">1</div>
+      <div class="seq-slot" id="slot-1" onclick="clearSlot(1)">2</div>
+      <div class="seq-slot" id="slot-2" onclick="clearSlot(2)">3</div>
+      <div class="seq-slot" id="slot-3" onclick="clearSlot(3)">4</div>
+    </div>
+    <div class="seq-pieces" id="seq-pieces">
+      <div class="seq-piece" id="sp-0" onclick="placePiece(0)">Isolar o gene</div>
+      <div class="seq-piece" id="sp-1" onclick="placePiece(1)">Testar produção</div>
+      <div class="seq-piece" id="sp-2" onclick="placePiece(2)">Inserir gene na bactéria</div>
+      <div class="seq-piece" id="sp-3" onclick="placePiece(3)">Copiar o gene (PCR)</div>
+    </div>
+    <div id="seq-feedback"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="checkSeq()">Verificar ordem →</button>
+      <button class="btn" onclick="resetSeq()">Recomeçar</button>
+    </div>
+  </div>
+
+  <!-- MISSÃO 3 -->
+  <div id="s-m3" class="screen">
+    <button class="btn btn-sm" style="margin-bottom:1rem" onclick="gameGoTo('s-hub')">← Missões</button>
+    <h2>Missão 3 — Testes pré-clínicos</h2>
+    <div class="phase-steps"><div class="phase-step active">Quiz de segurança</div><div class="phase-step">Resultado</div></div>
+    <p>Antes de testar o remédio em humanos, precisamos garantir que ele é seguro. Responda às perguntas do Comitê de Segurança!</p>
+    <div class="highlight hl-teal"><p>💡 Fato: Um medicamento leva em média 10 a 15 anos para ser aprovado. Os testes envolvem milhares de voluntários e várias fases de estudo.</p></div>
+    <div id="quiz-container"></div>
+  </div>
+
+  <!-- MISSÃO 4 -->
+  <div id="s-m4" class="screen">
+    <button class="btn btn-sm" style="margin-bottom:1rem" onclick="gameGoTo('s-hub')">← Missões</button>
+    <h2>Missão 4 — Aprovação e produção</h2>
+    <p>Você chegou à fase final! O regulador de medicamentos vai avaliar seu biofármaco. Tome as decisões certas!</p>
+    <div class="highlight hl-amber"><p>💡 Fato: A ANVISA é a agência brasileira que aprova medicamentos. Ela analisa dados de segurança, eficácia e qualidade da produção antes de liberar qualquer remédio.</p></div>
+    <div id="m4-steps"></div>
+  </div>
+
+  <!-- TELA FINAL -->
+  <div id="s-end" class="screen">
+    <div class="result-wrap">
+      <span class="result-icon">🏆</span>
+      <h1>Parabéns, Cientista!</h1>
+      <p>Você completou o BioFarma Lab e criou um biofármaco do zero!</p>
+      <div class="stats-row" style="margin:1.5rem 0">
+        <div class="stat-box"><div class="stat-val" id="end-pts">0</div><div class="stat-label">Pontos totais</div></div>
+        <div class="stat-box"><div class="stat-val">4/4</div><div class="stat-label">Missões</div></div>
+        <div class="stat-box"><div class="stat-val" id="end-rank">Cientista</div><div class="stat-label">Nível final</div></div>
+      </div>
+      <div class="card" style="text-align:left">
+        <h3>O que você aprendeu:</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <div style="font-size:14px;color:var(--text-secondary)">✅ Biofármacos são produzidos por organismos vivos</div>
+          <div style="font-size:14px;color:var(--text-secondary)">✅ A engenharia genética permite produzir proteínas em escala industrial</div>
+          <div style="font-size:14px;color:var(--text-secondary)">✅ Todo medicamento passa por testes de segurança rigorosos</div>
+          <div style="font-size:14px;color:var(--text-secondary)">✅ A ANVISA protege a saúde dos brasileiros</div>
+        </div>
+      </div>
+      <div class="btn-row" style="justify-content:center;margin-top:1.5rem">
+        <button class="btn btn-primary" onclick="resetGame()">Jogar de novo</button>
+        <button class="btn" onclick="switchTab('intro')">Rever o guia</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end game-section -->
+
+</div><!-- end .app -->
+
+<script>
+// ─── INTRO STATE ───
+var TOTAL_PAGES = 6;
+var curPage = 0;
+
+function renderDots() {
+  var d = document.getElementById('page-dots');
+  var h = '';
+  for (var i = 0; i < TOTAL_PAGES; i++) h += '<div class="dot' + (i === curPage ? ' active' : '') + '"></div>';
+  d.innerHTML = h;
+}
+
+function changePage(dir) {
+  document.getElementById('pg-' + curPage).classList.remove('active');
+  curPage = Math.max(0, Math.min(TOTAL_PAGES - 1, curPage + dir));
+  document.getElementById('pg-' + curPage).classList.add('active');
+  document.getElementById('rbar').style.width = Math.round((curPage / (TOTAL_PAGES - 1)) * 100) + '%';
+  document.getElementById('btn-prev').style.visibility = curPage === 0 ? 'hidden' : 'visible';
+  var nb = document.getElementById('btn-next');
+  nb.style.display = curPage === TOTAL_PAGES - 1 ? 'none' : '';
+  renderDots();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+renderDots();
+
+// ─── TAB SWITCHING ───
+function switchTab(tab) {
+  document.getElementById('intro-section').classList.remove('active');
+  document.getElementById('game-section').classList.remove('active');
+  document.getElementById('tab-intro').classList.remove('active-tab');
+  document.getElementById('tab-game').classList.remove('active-tab');
+  document.getElementById('reading-bar').style.display = tab === 'intro' ? 'block' : 'none';
+
+  if (tab === 'intro') {
+    document.getElementById('intro-section').classList.add('active');
+    document.getElementById('tab-intro').classList.add('active-tab');
+  } else {
+    document.getElementById('game-section').classList.add('active');
+    document.getElementById('tab-game').classList.add('active-tab');
+    updateHub();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── GAME STATE ───
+var gs = { pts: 0, done: [false, false, false, false], seqSlots: [null, null, null, null], quizStep: 0, quizScore: 0, m4Step: 0 };
+var CORRECT_SEQ = [0, 3, 2, 1];
+var RANKS = [[0,'Estagiário'],[100,'Assistente'],[200,'Pesquisador'],[350,'Cientista']];
+
+function getRank(p) {
+  var r = 'Estagiário';
+  for (var i = 0; i < RANKS.length; i++) { if (p >= RANKS[i][0]) r = RANKS[i][1]; }
+  return r;
+}
+
+function gameGoTo(id) {
+  document.querySelectorAll('#game-section .screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  if (id === 's-hub') updateHub();
+  if (id === 's-m2') initSeq();
+  if (id === 's-m3') initQuiz();
+  if (id === 's-m4') initM4();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateHub() {
+  document.getElementById('st-pts').textContent = gs.pts;
+  var done = gs.done.filter(Boolean).length;
+  document.getElementById('st-miss').textContent = done + '/4';
+  document.getElementById('st-rank').textContent = getRank(gs.pts);
+  document.getElementById('hub-bar').style.width = (done * 25) + '%';
+  var missions = [
+    { title: 'Descoberta da molécula', desc: 'Encontre a molécula certa para o biofármaco', screen: 's-m1', icon: '🧪' },
+    { title: 'Engenharia genética', desc: 'Ordene as etapas da produção do gene', screen: 's-m2', icon: '🧬' },
+    { title: 'Testes pré-clínicos', desc: 'Responda ao comitê de segurança', screen: 's-m3', icon: '🐭' },
+    { title: 'Aprovação e produção', desc: 'Obtenha a aprovação da ANVISA', screen: 's-m4', icon: '💊' }
+  ];
+  var html = '';
+  missions.forEach(function(m, i) {
+    var cls = 'mission-card';
+    var badge = '';
+    var onclick = '';
+    if (gs.done[i]) { cls += ' done'; badge = '<span class="badge badge-teal" style="margin-left:8px">Concluída</span>'; }
+    else if (i > 0 && !gs.done[i-1]) { cls += ' locked'; badge = '<span class="badge badge-amber" style="margin-left:8px">Bloqueada</span>'; }
+    else { onclick = 'onclick="gameGoTo(\'' + m.screen + '\')"'; }
+    html += '<div class="' + cls + '" ' + onclick + '>';
+    html += '<div><div class="mission-title">' + m.icon + ' Missão ' + (i+1) + ' — ' + m.title + badge + '</div>';
+    html += '<div class="mission-desc">' + m.desc + '</div></div>';
+    if (!gs.done[i] && (i === 0 || gs.done[i-1])) html += '<div class="mission-arrow">→</div>';
+    html += '</div>';
+  });
+  document.getElementById('mission-list').innerHTML = html;
+}
+
+// ─── MISSÃO 1 ───
+function selectMol(idx) {
+  var btns = document.querySelectorAll('.mol-btn');
+  btns.forEach(function(b){ b.classList.remove('selected','wrong'); });
+  var fb = document.getElementById('mol-feedback');
+  if (idx === 0) {
+    btns[0].classList.add('selected');
+    fb.innerHTML = '<div class="card card-teal" style="margin-top:1rem"><h3 style="color:var(--teal-600)">Excelente escolha!</h3><p>A Molécula A é uma proteína grande produzida por bactérias — exatamente o que caracteriza um biofármaco! Moléculas pequenas de síntese química são medicamentos convencionais.</p><div class="btn-row"><button class="btn btn-primary" onclick="completeM1()">Próxima missão →</button></div></div>';
+  } else {
+    btns[idx].classList.add('wrong');
+    var msg = idx === 1 ? 'A Molécula B é um medicamento químico convencional, não um biofármaco.' : 'A Molécula C é instável — não serve para produção farmacêutica!';
+    fb.innerHTML = '<div class="card" style="border-color:var(--red-400);margin-top:1rem"><p style="color:var(--red-800)">Tente novamente! ' + msg + '</p></div>';
+  }
+}
+function completeM1() { gs.pts += 100; gs.done[0] = true; gameGoTo('s-hub'); }
+
+// ─── MISSÃO 2 ───
+function initSeq() { gs.seqSlots = [null,null,null,null]; renderSeq(); }
+function renderSeq() {
+  var labels = ['Isolar o gene','Testar produção','Inserir gene na bactéria','Copiar o gene (PCR)'];
+  for (var i = 0; i < 4; i++) {
+    var slot = document.getElementById('slot-' + i);
+    if (gs.seqSlots[i] !== null) { slot.className = 'seq-slot filled'; slot.textContent = labels[gs.seqSlots[i]]; }
+    else { slot.className = 'seq-slot'; slot.textContent = i+1; }
+    var piece = document.getElementById('sp-' + i);
+    piece.className = gs.seqSlots.indexOf(i) !== -1 ? 'seq-piece used' : 'seq-piece';
+  }
+  document.getElementById('seq-feedback').innerHTML = '';
+}
+function placePiece(idx) {
+  if (gs.seqSlots.indexOf(idx) !== -1) return;
+  for (var i = 0; i < 4; i++) { if (gs.seqSlots[i] === null) { gs.seqSlots[i] = idx; break; } }
+  renderSeq();
+}
+function clearSlot(idx) { if (gs.seqSlots[idx] === null) return; gs.seqSlots[idx] = null; renderSeq(); }
+function resetSeq() { gs.seqSlots = [null,null,null,null]; renderSeq(); }
+function checkSeq() {
+  if (gs.seqSlots.indexOf(null) !== -1) { document.getElementById('seq-feedback').innerHTML = '<div class="card" style="margin-top:1rem"><p>Preencha todos os 4 slots primeiro!</p></div>'; return; }
+  var correct = true;
+  for (var i = 0; i < 4; i++) { if (gs.seqSlots[i] !== CORRECT_SEQ[i]) { correct = false; break; } }
+  var fb = document.getElementById('seq-feedback');
+  if (correct) {
+    fb.innerHTML = '<div class="card card-teal" style="margin-top:1rem"><h3 style="color:var(--teal-600)">Sequência correta!</h3><p>Perfeito! A ordem é: Isolar o gene → Copiar (PCR) → Inserir na bactéria → Testar produção. É exatamente como a insulina recombinante é produzida!</p><div class="btn-row"><button class="btn btn-primary" onclick="completeM2()">Próxima missão →</button></div></div>';
+  } else {
+    fb.innerHTML = '<div class="card" style="border-color:var(--red-400);margin-top:1rem"><p style="color:var(--red-800)">Não está certo ainda. Dica: primeiro você precisa ter o gene antes de copiá-lo e inseri-lo!</p></div>';
+  }
+}
+function completeM2() { gs.pts += 100; gs.done[1] = true; gameGoTo('s-hub'); }
+
+// ─── MISSÃO 3 ───
+var QUIZ = [
+  { q:'Por que os biofármacos precisam ser testados em animais antes de humanos?', opts:['Para ver se o remédio tem bom sabor','Para garantir que não causam danos graves antes de testar em pessoas','Para ver se os animais ficam mais fortes','Porque é mais barato'], correct:1 },
+  { q:'O que é um "efeito colateral" de um medicamento?', opts:['Um efeito extra e indesejado que o remédio pode causar','A cor do remédio','O cheiro do comprimido','A validade do produto'], correct:0 },
+  { q:'Qual é a diferença entre um biofármaco e um medicamento químico comum?', opts:['O biofármaco custa menos','O biofármaco é produzido por organismos vivos, o químico é sintetizado em laboratório','O biofármaco só serve para crianças','Não há diferença'], correct:1 }
+];
+function initQuiz() { gs.quizStep = 0; gs.quizScore = 0; renderQuiz(); }
+function renderQuiz() {
+  var c = document.getElementById('quiz-container');
+  if (gs.quizStep >= QUIZ.length) {
+    var bonus = gs.quizScore * 40;
+    c.innerHTML = '<div class="card card-teal" style="margin-top:1rem"><h3 style="color:var(--teal-600)">Testes concluídos!</h3><p>Você acertou ' + gs.quizScore + ' de ' + QUIZ.length + ' perguntas. O Comitê de Segurança aprovou seu biofármaco!</p><p style="font-size:13px;color:var(--text-muted)">Bônus: +' + bonus + ' pontos</p><div class="btn-row"><button class="btn btn-primary" onclick="completeM3(' + bonus + ')">Próxima missão →</button></div></div>';
+    return;
+  }
+  var q = QUIZ[gs.quizStep];
+  var html = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Pergunta ' + (gs.quizStep+1) + ' de ' + QUIZ.length + '</div>';
+  html += '<h3>' + q.q + '</h3><div class="quiz-opts">';
+  q.opts.forEach(function(o, i){ html += '<button class="quiz-opt" onclick="answerQuiz(' + i + ')">' + o + '</button>'; });
+  html += '</div>';
+  c.innerHTML = html;
+}
+function answerQuiz(idx) {
+  var q = QUIZ[gs.quizStep];
+  var btns = document.querySelectorAll('.quiz-opt');
+  btns.forEach(function(b, i){ if (i === q.correct) b.classList.add('correct'); else if (i === idx && idx !== q.correct) b.classList.add('wrong'); b.onclick = null; });
+  if (idx === q.correct) gs.quizScore++;
+  setTimeout(function(){ gs.quizStep++; renderQuiz(); }, 900);
+}
+function completeM3(bonus) { gs.pts += bonus; gs.done[2] = true; gameGoTo('s-hub'); }
+
+// ─── MISSÃO 4 ───
+var M4 = [
+  { q:'A ANVISA pediu o dossiê de qualidade do seu biofármaco. O que você faz?', opts:['Envia todos os dados de produção, purificação e controle de qualidade','Diz que os dados são confidenciais','Pede mais 5 anos para preparar'], correct:0, ok:'Perfeito! Transparência com a ANVISA é essencial para a aprovação.', err:'A ANVISA precisa de todos os dados para proteger os pacientes!' },
+  { q:'Um pesquisador sugere pular os testes clínicos para lançar o remédio mais rápido. O que você decide?', opts:['Concordar — quanto mais rápido, melhor','Recusar — os testes são obrigatórios e protegem os pacientes','Fazer apenas metade dos testes'], correct:1, ok:'Excelente decisão ética! A segurança dos pacientes sempre vem primeiro.', err:'Pular testes pode colocar vidas em risco. A ética científica é inegociável!' },
+  { q:'Seu biofármaco foi aprovado! Como você quer distribuí-lo?', opts:['Vender apenas para países ricos','Trabalhar para que seja acessível pelo SUS também','Guardar segredo da fórmula para sempre'], correct:1, ok:'Ótimo! O acesso universal é um princípio fundamental da saúde pública.', err:'A ciência deve servir a todos, não apenas a quem pode pagar!' }
+];
+function initM4() { gs.m4Step = 0; renderM4(); }
+function renderM4() {
+  var c = document.getElementById('m4-steps');
+  if (gs.m4Step >= M4.length) {
+    c.innerHTML = '<div class="card card-teal" style="margin-top:1rem"><h3 style="color:var(--teal-600)">Biofármaco aprovado!</h3><p>Você tomou todas as decisões corretas. Seu biofármaco está aprovado e chegará aos pacientes pelo SUS. Missão cumprida!</p><div class="btn-row"><button class="btn btn-primary" onclick="completeM4()">Ver resultado final →</button></div></div>';
+    return;
+  }
+  var s = M4[gs.m4Step];
+  var html = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Decisão ' + (gs.m4Step+1) + ' de ' + M4.length + '</div>';
+  html += '<h3>' + s.q + '</h3><div class="quiz-opts">';
+  s.opts.forEach(function(o, i){ html += '<button class="quiz-opt" onclick="answerM4(' + i + ')">' + o + '</button>'; });
+  html += '</div><div id="m4-fb"></div>';
+  c.innerHTML = html;
+}
+function answerM4(idx) {
+  var s = M4[gs.m4Step];
+  var btns = document.querySelectorAll('#m4-steps .quiz-opt');
+  btns.forEach(function(b, i){ if (i === s.correct) b.classList.add('correct'); else if (i === idx && idx !== s.correct) b.classList.add('wrong'); b.onclick = null; });
+  var msg = idx === s.correct ? s.ok : s.err;
+  var cls = idx === s.correct ? 'hl-teal' : 'hl-amber';
+  document.getElementById('m4-fb').innerHTML = '<div class="highlight ' + cls + '" style="margin-top:10px"><p>' + msg + '</p></div>';
+  if (idx === s.correct) gs.pts += 30;
+  setTimeout(function(){ gs.m4Step++; renderM4(); }, 1200);
+}
+function completeM4() { gs.done[3] = true; gameGoTo('s-end'); document.getElementById('end-pts').textContent = gs.pts; document.getElementById('end-rank').textContent = getRank(gs.pts); }
+function resetGame() { gs = { pts:0, done:[false,false,false,false], seqSlots:[null,null,null,null], quizStep:0, quizScore:0, m4Step:0 }; gameGoTo('s-hub'); }
+
+updateHub();
+</script>
+</body>
+</html>
